@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>上野東京ライン(高崎線直通) 遅延分析</title>
+  <style>
+    :root {
+      --bg: #f6f6f7;
+      --card: #ffffff;
+      --text: #1c1c1e;
+      --sub: #6e6e73;
+      --border: #e5e5ea;
+      --track: #ebebf0;
+      --red: #e0483a;
+      --amber: #e2a028;
+      --green: #38a169;
+      --accent: #007aff;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: 16px 14px 48px;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* 上部：登録フォーム */
+    .input-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+      margin-bottom: 22px;
+      border: 1px solid var(--border);
+    }
+    .input-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--sub);
+      margin: 0 0 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--sub);
+      margin-bottom: 4px;
+    }
+    input[type="date"], input[type="time"] {
+      width: 100%;
+      height: 42px;
+      padding: 0 10px;
+      border: 1px solid #d1d1d6;
+      border-radius: 10px;
+      font-size: 16px;
+      font-family: inherit;
+      background: #fafafa;
+      color: var(--text);
+    }
+    .weather-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .weather-btn {
+      flex: 1;
+      height: 40px;
+      border: 1px solid #d1d1d6;
+      border-radius: 10px;
+      background: #fafafa;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .weather-btn.active {
+      background: #eef6ff;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .submit-btn {
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 11px;
+      background: var(--text);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .submit-btn:active { opacity: 0.8; }
+
+    /* ダッシュボードヘッダー（画像準拠） */
+    .dash-header {
+      padding: 0 4px;
+      margin-bottom: 12px;
+    }
+    .dash-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+    .dash-meta {
+      font-size: 13px;
+      color: var(--sub);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .filter-pills {
+      display: flex;
+      gap: 4px;
+    }
+    .pill {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--sub);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .pill.active {
+      background: var(--text);
+      color: #fff;
+      border-color: var(--text);
+    }
+
+    /* メインカード（画像準拠デザイン） */
+    .dash-card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 18px 18px 8px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+    }
+    .dow-block {
+      margin-bottom: 20px;
+    }
+    .dow-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .dow-label {
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .dow-count {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--sub);
+      margin-top: 1px;
+    }
+    .dow-median {
+      font-size: 23px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .dow-median span {
+      font-size: 15px;
+      font-weight: 700;
+      margin-left: 1px;
+    }
+    .bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--track);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 7px;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.35s ease;
+    }
+    .dow-bottom {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--sub);
+      font-weight: 500;
+    }
+
+    /* 履歴・データ管理（折りたたみ） */
+    details.manage-box {
+      margin-top: 18px;
+      background: var(--card);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    details.manage-box summary {
+      font-weight: 700;
+      color: var(--sub);
+      cursor: pointer;
+      list-style: none;
+    }
+    .history-list {
+      margin-top: 10px;
+      max-height: 220px;
+      overflow-y: auto;
+      border-top: 1px solid var(--border);
+    }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 2px;
+      border-bottom: 1px solid #f2f2f7;
+      font-size: 13px;
+    }
+    .del-btn {
+      background: none;
+      border: 1px solid #e5e5ea;
+      border-radius: 6px;
+      color: var(--sub);
+      font-size: 11px;
+      padding: 2px 7px;
+      cursor: pointer;
+    }
+    .backup-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .sub-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #d1d1d6;
+      background: #fafafa;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(28,28,30,0.92);
+      color: #fff;
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 画面上部：登録フォーム -->
+    <section class="input-card">
+      <div class="input-title">
+        <span>大手町 通過時刻を記録</span>
+        <span id="todayDowLabel" style="font-weight:600;"></span>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="dateInput">日付</label>
+          <input type="date" id="dateInput" />
+        </div>
+        <div class="field">
+          <label for="timeInput">通過時刻 (基準 09:00)</label>
+          <input type="time" id="timeInput" value="09:00" />
+        </div>
+      </div>
+      <div class="field">
+        <label>天気</label>
+        <div class="weather-row" id="weatherGroup">
+          <button type="button" class="weather-btn active" data-val="晴">☀️ 晴</button>
+          <button type="button" class="weather-btn" data-val="曇">☁️ 曇</button>
+          <button type="button" class="weather-btn" data-val="雨">☔ 雨</button>
+        </div>
+      </div>
+      <button type="button" class="submit-btn" id="saveBtn">記録を追加・更新</button>
+    </section>
+
+    <!-- 画面中央〜下部：ダッシュボード -->
+    <section>
+      <div class="dash-header">
+        <h1>曜日別の遅延パターン</h1>
+        <div class="dash-meta">
+          <span id="periodText">集計中...</span>
+          <div class="filter-pills" id="weatherFilter">
+            <button type="button" class="pill active" data-filter="ALL">全て</button>
+            <button type="button" class="pill" data-filter="晴">晴</button>
+            <button type="button" class="pill" data-filter="曇">曇</button>
+            <button type="button" class="pill" data-filter="雨">雨</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-card" id="dashboardCard"></div>
+    </section>
+
+    <!-- 履歴確認＆バックアップ -->
+    <details class="manage-box">
+      <summary>記録履歴の確認・削除 / データ移行</summary>
+      <div class="history-list" id="historyList"></div>
+      <div class="backup-actions">
+        <button type="button" class="sub-btn" id="exportBtn">JSONコピー</button>
+        <button type="button" class="sub-btn" id="importBtn">JSON貼付復元</button>
+      </div>
+    </details>
+  </div>
+
+  <div class="toast" id="toast">保存しました</div>
+
+  <script>
+    const STORAGE_KEY = 'takasaki_otemachi_delay_v1';
+    const BASE_MINUTES = 9 * 60; // 09:00 基準
+
+    // Excelファイルから抽出した初期データ（47日分）
+    const INITIAL_DATA = [
+      {"date": "2026-08-25", "time": "09:01", "weather": "晴"},
+      {"date": "2026-08-26", "time": "09:02", "weather": "曇"},
+      {"date": "2026-08-27", "time": "09:02", "weather": "雨"},
+      {"date": "2026-08-28", "time": "09:00", "weather": "曇"},
+      {"date": "2026-08-31", "time": "09:00", "weather": "雨"},
+      {"date": "2026-09-01", "time": "09:02", "weather": "曇"},
+      {"date": "2026-09-02", "time": "09:05", "weather": "曇"},
+      {"date": "2026-09-03", "time": "09:00", "weather": "雨"},
+      {"date": "2026-09-04", "time": "09:00", "weather": "雨"},
+      {"date": "2026-09-07", "time": "09:22", "weather": "雨"},
+      {"date": "2026-09-08", "time": "09:00", "weather": "雨"},
+      {"date": "2026-09-10", "time": "09:00", "weather": "雨"},
+      {"date": "2026-09-14", "time": "09:15", "weather": "晴"},
+      {"date": "2026-09-15", "time": "09:10", "weather": "雨"},
+      {"date": "2026-09-17", "time": "09:00", "weather": "雨"},
+      {"date": "2026-09-18", "time": "08:59", "weather": "曇"},
+      {"date": "2026-09-24", "time": "09:00", "weather": "晴"},
+      {"date": "2026-09-25", "time": "08:58", "weather": "曇"},
+      {"date": "2026-09-28", "time": "09:13", "weather": "雨"},
+      {"date": "2026-09-29", "time": "09:00", "weather": "雨"},
+      {"date": "2026-10-01", "time": "09:01", "weather": "晴"},
+      {"date": "2026-10-02", "time": "09:00", "weather": "曇"},
+      {"date": "2026-10-05", "time": "09:15", "weather": "雨"},
+      {"date": "2026-10-06", "time": "09:00", "weather": "曇"},
+      {"date": "2026-10-07", "time": "09:00", "weather": "晴"},
+      {"date": "2026-10-08", "time": "09:00", "weather": "晴"},
+      {"date": "2026-10-09", "time": "09:01", "weather": "晴"},
+      {"date": "2026-10-13", "time": "08:59", "weather": "雨"},
+      {"date": "2026-10-14", "time": "09:00", "weather": "雨"},
+      {"date": "2026-10-15", "time": "09:04", "weather": "晴"},
+      {"date": "2026-10-19", "time": "09:01", "weather": "曇"},
+      {"date": "2026-10-20", "time": "09:01", "weather": "雨"},
+      {"date": "2026-10-22", "time": "09:04", "weather": "晴"},
+      {"date": "2026-10-23", "time": "09:00", "weather": "晴"},
+      {"date": "2026-10-26", "time": "09:06", "weather": "雨"},
+      {"date": "2026-10-27", "time": "08:59", "weather": "雨"},
+      {"date": "2026-10-29", "time": "08:58", "weather": "曇"},
+      {"date": "2026-10-30", "time": "09:01", "weather": "雨"},
+      {"date": "2026-11-04", "time": "08:59", "weather": "雨"},
+      {"date": "2026-11-05", "time": "09:05", "weather": "雨"},
+      {"date": "2026-11-06", "time": "10:00", "weather": "晴"},
+      {"date": "2026-11-09", "time": "09:00", "weather": "雨"},
+      {"date": "2026-11-10", "time": "08:59", "weather": "雨"},
+      {"date": "2026-11-12", "time": "09:10", "weather": "晴"},
+      {"date": "2026-11-13", "time": "09:00", "weather": "晴"},
+      {"date": "2026-11-16", "time": "09:13", "weather": "晴"},
+      {"date": "2026-11-17", "time": "08:59", "weather": "雨"}
+    ];
+
+    let records = loadRecords();
+    let selectedWeather = '晴';
+    let currentFilter = 'ALL';
+
+    function loadRecords() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DATA));
+      return [...INITIAL_DATA];
+    }
+
+    function saveRecords() {
+      records.sort((a, b) => a.date.localeCompare(b.date));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    // 今日の日付を初期セット
+    function initForm() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const todayStr = `${yyyy}-${mm}-${dd}`;
+      const dateInput = document.getElementById('dateInput');
+      dateInput.value = todayStr;
+      updateDowHint(todayStr);
+
+      dateInput.addEventListener('change', (e) => updateDowHint(e.target.value));
+    }
+
+    function updateDowHint(dateStr) {
+      if (!dateStr) return;
+      const d = new Date(dateStr + 'T00:00:00');
+      const names = ['日', '月', '火', '水', '木', '金', '土'];
+      document.getElementById('todayDowLabel').textContent = `${names[d.getDay()]}曜日`;
+    }
+
+    // 天気ボタン選択
+    document.querySelectorAll('.weather-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.weather-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedWeather = btn.dataset.val;
+      });
+    });
+
+    // 天気フィルター切替
+    document.querySelectorAll('#weatherFilter .pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('#weatherFilter .pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        currentFilter = pill.dataset.filter;
+        renderDashboard();
+      });
+    });
+
+    // 保存処理（同日があれば上書き）
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const date = document.getElementById('dateInput').value;
+      const time = document.getElementById('timeInput').value;
+      if (!date || !time) return;
+
+      const idx = records.findIndex(r => r.date === date);
+      if (idx >= 0) {
+        records[idx] = { date, time, weather: selectedWeather };
+      } else {
+        records.push({ date, time, weather: selectedWeather });
+      }
+      saveRecords();
+      renderAll();
+      showToast(`${date} (${time}) を記録しました`);
+    });
+
+    function timeToDiff(timeStr) {
+      const [h, m] = timeStr.split(':').map(Number);
+      return (h * 60 + m) - BASE_MINUTES;
+    }
+
+    function calcMedian(arr) {
+      if (!arr.length) return 0;
+      const sorted = [...arr].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 !== 0
+        ? sorted[mid]
+        : (sorted[mid - 1] + sorted[mid]) / 2;
+    }
+
+    function formatSigned(num, isInt = false) {
+      const val = isInt ? Math.round(num) : Number(num.toFixed(1));
+      if (val > 0) return `+${isInt ? val : val.toFixed(1)}`;
+      if (val < 0) return `−${isInt ? Math.abs(val) : Math.abs(val).toFixed(1)}`;
+      return isInt ? '±0' : '0.0';
+    }
+
+    function formatJpDate(dateStr, showYear = true) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return showYear ? `${y}年${m}月${d}日` : `${m}月${d}日`;
+    }
+
+    function renderDashboard() {
+      const filtered = currentFilter === 'ALL'
+        ? records
+        : records.filter(r => r.weather === currentFilter);
+
+      const periodEl = document.getElementById('periodText');
+      if (filtered.length === 0) {
+        periodEl.textContent = 'データなし';
+        document.getElementById('dashboardCard').innerHTML = '<p style="color:var(--sub);font-size:13px;">該当する記録がありません</p>';
+        return;
+      }
+
+      const sortedDates = [...filtered].sort((a, b) => a.date.localeCompare(b.date));
+      const first = sortedDates[0].date;
+      const last = sortedDates[sortedDates.length - 1].date;
+      const sameYear = first.slice(0, 4) === last.slice(0, 4);
+      periodEl.textContent = `${formatJpDate(first, true)}〜${formatJpDate(last, !sameYear)}・全${filtered.length}日分`;
+
+      // 月(1)〜金(5)の集計
+      const dowConfigs = [
+        { dow: 1, name: '月曜日' },
+        { dow: 2, name: '火曜日' },
+        { dow: 3, name: '水曜日' },
+        { dow: 4, name: '木曜日' },
+        { dow: 5, name: '金曜日' }
+      ];
+
+      const stats = dowConfigs.map(cfg => {
+        const items = filtered.filter(r => {
+          const d = new Date(r.date + 'T00:00:00').getDay();
+          return d === cfg.dow;
+        });
+        const diffs = items.map(r => timeToDiff(r.time));
+        const median = calcMedian(diffs);
+        const lateCount = diffs.filter(v => v > 0).length;
+        const maxDiff = diffs.length ? Math.max(...diffs) : 0;
+        return { ...cfg, count: items.length, median, lateCount, maxDiff };
+      });
+
+      // バーの最大スケール（最低15分、最大中央値に合わせて自動調整）
+      const maxBarScale = Math.max(15, ...stats.map(s => Math.max(0, s.median)));
+
+      const html = stats.map(s => {
+        let color = 'var(--green)';
+        if (s.median >= 5) color = 'var(--red)';
+        else if (s.median > 0) color = 'var(--amber)';
+
+        // 0以下でも画像のように左端にわずかな緑のチップを表示
+        const widthPct = s.count === 0
+          ? 0
+          : s.median <= 0
+            ? 2.2
+            : Math.min(100, Math.max(4, (s.median / maxBarScale) * 100));
+
+        const medianColor = s.median >= 5 ? 'var(--red)' : 'var(--text)';
+        const medianText = s.count === 0 ? '0.0' : formatSigned(s.median, false);
+
+        return `
+          <div class="dow-block">
+            <div class="dow-top">
+              <div>
+                <div class="dow-label">${s.name}</div>
+                <span class="dow-count">(${s.count}日)</span>
+              </div>
+              <div class="dow-median" style="color:${medianColor}">
+                ${medianText}<span>分</span>
+              </div>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${widthPct}%; background:${color};"></div>
+            </div>
+            <div class="dow-bottom">
+              <span>9:00より遅い日：${s.lateCount}/${s.count}日</span>
+              <span>最大：${s.count ? formatSigned(s.maxDiff, true) + '分' : '±0分'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('dashboardCard').innerHTML = html;
+    }
+
+    function renderHistory() {
+      const listEl = document.getElementById('historyList');
+      const desc = [...records].sort((a, b) => b.date.localeCompare(a.date));
+      const names = ['日', '月', '火', '水', '木', '金', '土'];
+
+      listEl.innerHTML = desc.map(r => {
+        const dow = names[new Date(r.date + 'T00:00:00').getDay()];
+        const diff = timeToDiff(r.time);
+        const diffStr = formatSigned(diff, true) + '分';
+        return `
+          <div class="history-item">
+            <span><strong>${r.date}</strong> (${dow}) ・ ${r.time} [${r.weather}] <small style="color:var(--sub)">(${diffStr})</small></span>
+            <button type="button" class="del-btn" onclick="deleteRecord('${r.date}')">削除</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.deleteRecord = function(dateStr) {
+      if (!confirm(`${dateStr} の記録を削除しますか？`)) return;
+      records = records.filter(r => r.date !== dateStr);
+      saveRecords();
+      renderAll();
+      showToast('削除しました');
+    };
+
+    // バックアップ機能
+    document.getElementById('exportBtn').addEventListener('click', async () => {
+      const json = JSON.stringify(records);
+      try {
+        await navigator.clipboard.writeText(json);
+        showToast('全データをクリップボードにコピーしました');
+      } catch (e) {
+        prompt('以下をコピーして保存してください', json);
+      }
+    });
+
+    document.getElementById('importBtn').addEventListener('click', () => {
+      const input = prompt('バックアップしたJSON文字列を貼り付けてください');
+      if (!input) return;
+      try {
+        const parsed = JSON.parse(input);
+        if (Array.isArray(parsed)) {
+          records = parsed;
+          saveRecords();
+          renderAll();
+          showToast('データを復元しました');
+        }
+      } catch (e) {
+        alert('JSONの形式が正しくありません');
+      }
+    });
+
+    function renderAll() {
+      renderDashboard();
+      renderHistory();
+    }
+
+    initForm();
+    renderAll();
+  </script>
+</body>
+</html>
