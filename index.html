@@ -51,9 +51,12 @@
     }
     .form-grid {
       display: grid;
-      grid-template-columns: 1.25fr 0.95fr;
-      gap: 10px;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 8px;
       margin-bottom: 10px;
+    }
+    .field {
+      min-width: 0; /* Grid内での要素のはみ出しを防止 */
     }
     .field label {
       display: block;
@@ -65,10 +68,10 @@
     input[type="date"], input[type="time"] {
       width: 100%;
       height: 42px;
-      padding: 0 10px;
+      padding: 0 6px;
       border: 1px solid #d1d1d6;
       border-radius: 10px;
-      font-size: 16px;
+      font-size: 14px;
       font-family: inherit;
       background: #fafafa;
       color: var(--text);
@@ -108,7 +111,7 @@
     }
     .submit-btn:active { opacity: 0.8; }
 
-    /* ダッシュボードヘッダー（画像準拠） */
+    /* ダッシュボードヘッダー */
     .dash-header {
       padding: 0 4px;
       margin-bottom: 12px;
@@ -148,7 +151,7 @@
       border-color: var(--text);
     }
 
-    /* メインカード（画像準拠デザイン） */
+    /* メインカード */
     .dash-card {
       background: var(--card);
       border-radius: 18px;
@@ -207,7 +210,7 @@
       font-weight: 500;
     }
 
-    /* 履歴・データ管理（折りたたみ） */
+    /* 履歴・データ管理 */
     details.manage-box {
       margin-top: 18px;
       background: var(--card);
@@ -343,7 +346,6 @@
     const STORAGE_KEY = 'takasaki_otemachi_delay_v1';
     const BASE_MINUTES = 9 * 60; // 09:00 基準
 
-    // Excelファイルから抽出した初期データ（47日分）
     const INITIAL_DATA = [
       {"date": "2026-08-25", "time": "09:01", "weather": "晴"},
       {"date": "2026-08-26", "time": "09:02", "weather": "曇"},
@@ -401,9 +403,7 @@
     function loadRecords() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch (e) {}
+        try { return JSON.parse(saved); } catch (e) {}
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DATA));
       return [...INITIAL_DATA];
@@ -421,7 +421,6 @@
       setTimeout(() => t.classList.remove('show'), 2000);
     }
 
-    // 今日の日付を初期セット
     function initForm() {
       const now = new Date();
       const yyyy = now.getFullYear();
@@ -442,7 +441,6 @@
       document.getElementById('todayDowLabel').textContent = `${names[d.getDay()]}曜日`;
     }
 
-    // 天気ボタン選択
     document.querySelectorAll('.weather-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.weather-btn').forEach(b => b.classList.remove('active'));
@@ -451,7 +449,6 @@
       });
     });
 
-    // 天気フィルター切替
     document.querySelectorAll('#weatherFilter .pill').forEach(pill => {
       pill.addEventListener('click', () => {
         document.querySelectorAll('#weatherFilter .pill').forEach(p => p.classList.remove('active'));
@@ -461,7 +458,6 @@
       });
     });
 
-    // 保存処理（同日があれば上書き）
     document.getElementById('saveBtn').addEventListener('click', () => {
       const date = document.getElementById('dateInput').value;
       const time = document.getElementById('timeInput').value;
@@ -487,9 +483,7 @@
       if (!arr.length) return 0;
       const sorted = [...arr].sort((a, b) => a - b);
       const mid = Math.floor(sorted.length / 2);
-      return sorted.length % 2 !== 0
-        ? sorted[mid]
-        : (sorted[mid - 1] + sorted[mid]) / 2;
+      return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     }
 
     function formatSigned(num, isInt = false) {
@@ -522,7 +516,6 @@
       const sameYear = first.slice(0, 4) === last.slice(0, 4);
       periodEl.textContent = `${formatJpDate(first, true)}〜${formatJpDate(last, !sameYear)}・全${filtered.length}日分`;
 
-      // 月(1)〜金(5)の集計
       const dowConfigs = [
         { dow: 1, name: '月曜日' },
         { dow: 2, name: '火曜日' },
@@ -532,10 +525,7 @@
       ];
 
       const stats = dowConfigs.map(cfg => {
-        const items = filtered.filter(r => {
-          const d = new Date(r.date + 'T00:00:00').getDay();
-          return d === cfg.dow;
-        });
+        const items = filtered.filter(r => new Date(r.date + 'T00:00:00').getDay() === cfg.dow);
         const diffs = items.map(r => timeToDiff(r.time));
         const median = calcMedian(diffs);
         const lateCount = diffs.filter(v => v > 0).length;
@@ -543,7 +533,6 @@
         return { ...cfg, count: items.length, median, lateCount, maxDiff };
       });
 
-      // バーの最大スケール（最低15分、最大中央値に合わせて自動調整）
       const maxBarScale = Math.max(15, ...stats.map(s => Math.max(0, s.median)));
 
       const html = stats.map(s => {
@@ -551,13 +540,7 @@
         if (s.median >= 5) color = 'var(--red)';
         else if (s.median > 0) color = 'var(--amber)';
 
-        // 0以下でも画像のように左端にわずかな緑のチップを表示
-        const widthPct = s.count === 0
-          ? 0
-          : s.median <= 0
-            ? 2.2
-            : Math.min(100, Math.max(4, (s.median / maxBarScale) * 100));
-
+        const widthPct = s.count === 0 ? 0 : s.median <= 0 ? 2.2 : Math.min(100, Math.max(4, (s.median / maxBarScale) * 100));
         const medianColor = s.median >= 5 ? 'var(--red)' : 'var(--text)';
         const medianText = s.count === 0 ? '0.0' : formatSigned(s.median, false);
 
@@ -612,14 +595,13 @@
       showToast('削除しました');
     };
 
-    // バックアップ機能
     document.getElementById('exportBtn').addEventListener('click', async () => {
       const json = JSON.stringify(records);
       try {
         await navigator.clipboard.writeText(json);
         showToast('全データをクリップボードにコピーしました');
       } catch (e) {
-        prompt('以下をコピーして保存してください', json);
+        prompt('以下をコピーしてください', json);
       }
     });
 
