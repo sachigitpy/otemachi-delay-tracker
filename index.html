@@ -65,16 +65,20 @@
       color: var(--sub);
       margin-bottom: 4px;
     }
-    input[type="date"], input[type="time"] {
+input[type="date"], input[type="time"] {
+      display: block;
       width: 100%;
+      max-width: 100%;
+      min-width: 0;
       height: 42px;
-      padding: 0 6px;
+      padding: 0 8px;
       border: 1px solid #d1d1d6;
       border-radius: 10px;
-      font-size: 14px;
+      font-size: 15px;
       font-family: inherit;
       background: #fafafa;
       color: var(--text);
+      -webkit-appearance: none;
     }
     .weather-row {
       display: flex;
