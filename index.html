@@ -303,7 +303,7 @@ input[type="date"], input[type="time"] {
           <input type="date" id="dateInput" />
         </div>
         <div class="field">
-          <label for="timeInput">通過時刻 (基準 09:00)</label>
+          <label for="timeInput">通過時刻 (基準 08:58)</label>
           <input type="time" id="timeInput" value="09:00" />
         </div>
       </div>
@@ -351,41 +351,41 @@ input[type="date"], input[type="time"] {
 
   <script>
     const STORAGE_KEY = 'takasaki_otemachi_delay_v1';
-    const BASE_MINUTES = 9 * 60; // 09:00 基準
+  const BASE_MINUTES = 8 * 60 + 58; // 08:58 基準
 
     const INITIAL_DATA = [
-      {"date": "2026-08-25", "time": "09:01", "weather": "晴"},
-      {"date": "2026-08-26", "time": "09:02", "weather": "曇"},
-      {"date": "2026-08-27", "time": "09:02", "weather": "雨"},
-      {"date": "2026-08-28", "time": "09:00", "weather": "曇"},
-      {"date": "2026-08-31", "time": "09:00", "weather": "雨"},
-      {"date": "2026-09-01", "time": "09:02", "weather": "曇"},
-      {"date": "2026-09-02", "time": "09:05", "weather": "曇"},
-      {"date": "2026-09-03", "time": "09:00", "weather": "雨"},
-      {"date": "2026-09-04", "time": "09:00", "weather": "雨"},
-      {"date": "2026-09-07", "time": "09:22", "weather": "雨"},
-      {"date": "2026-09-08", "time": "09:00", "weather": "雨"},
-      {"date": "2026-09-10", "time": "09:00", "weather": "雨"},
-      {"date": "2026-09-14", "time": "09:15", "weather": "晴"},
-      {"date": "2026-09-15", "time": "09:10", "weather": "雨"},
-      {"date": "2026-09-17", "time": "09:00", "weather": "雨"},
-      {"date": "2026-09-18", "time": "08:59", "weather": "曇"},
-      {"date": "2026-09-24", "time": "09:00", "weather": "晴"},
-      {"date": "2026-09-25", "time": "08:58", "weather": "曇"},
-      {"date": "2026-09-28", "time": "09:13", "weather": "雨"},
-      {"date": "2026-09-29", "time": "09:00", "weather": "雨"},
-      {"date": "2026-10-01", "time": "09:01", "weather": "晴"},
-      {"date": "2026-10-02", "time": "09:00", "weather": "曇"},
-      {"date": "2026-10-05", "time": "09:15", "weather": "雨"},
-      {"date": "2026-10-06", "time": "09:00", "weather": "曇"},
-      {"date": "2026-10-07", "time": "09:00", "weather": "晴"},
-      {"date": "2026-10-08", "time": "09:00", "weather": "晴"},
-      {"date": "2026-10-09", "time": "09:01", "weather": "晴"},
-      {"date": "2026-10-13", "time": "08:59", "weather": "雨"},
-      {"date": "2026-10-14", "time": "09:00", "weather": "雨"},
-      {"date": "2026-10-15", "time": "09:04", "weather": "晴"},
-      {"date": "2026-10-19", "time": "09:01", "weather": "曇"},
-      {"date": "2026-10-20", "time": "09:01", "weather": "雨"},
+      {"date": "2026-08-25", "time": "08:59", "weather": "晴"},
+      {"date": "2026-08-26", "time": "09:00", "weather": "曇"},
+      {"date": "2026-08-27", "time": "09:00", "weather": "雨"},
+      {"date": "2026-08-28", "time": "08:58", "weather": "曇"},
+      {"date": "2026-08-31", "time": "08:58", "weather": "雨"},
+      {"date": "2026-09-01", "time": "09:00", "weather": "曇"},
+      {"date": "2026-09-02", "time": "09:03", "weather": "曇"},
+      {"date": "2026-09-03", "time": "08:58", "weather": "雨"},
+      {"date": "2026-09-04", "time": "08:58", "weather": "雨"},
+      {"date": "2026-09-07", "time": "09:20", "weather": "雨"},
+      {"date": "2026-09-08", "time": "08:58", "weather": "雨"},
+      {"date": "2026-09-10", "time": "08:58", "weather": "雨"},
+      {"date": "2026-09-14", "time": "09:13", "weather": "晴"},
+      {"date": "2026-09-15", "time": "09:08", "weather": "雨"},
+      {"date": "2026-09-17", "time": "08:58", "weather": "雨"},
+      {"date": "2026-09-18", "time": "08:57", "weather": "曇"},
+      {"date": "2026-09-24", "time": "08:58", "weather": "晴"},
+      {"date": "2026-09-25", "time": "08:56", "weather": "曇"},
+      {"date": "2026-09-28", "time": "09:11", "weather": "雨"},
+      {"date": "2026-09-29", "time": "08:58", "weather": "雨"},
+      {"date": "2026-10-01", "time": "08:59", "weather": "晴"},
+      {"date": "2026-10-02", "time": "08:58", "weather": "曇"},
+      {"date": "2026-10-05", "time": "09:13", "weather": "雨"},
+      {"date": "2026-10-06", "time": "08:58", "weather": "曇"},
+      {"date": "2026-10-07", "time": "08:58", "weather": "晴"},
+      {"date": "2026-10-08", "time": "08:58", "weather": "晴"},
+      {"date": "2026-10-09", "time": "08:59", "weather": "晴"},
+      {"date": "2026-10-13", "time": "08:57", "weather": "雨"},
+      {"date": "2026-10-14", "time": "08:58", "weather": "雨"},
+      {"date": "2026-10-15", "time": "09:02", "weather": "晴"},
+      {"date": "2026-10-19", "time": "08:59", "weather": "曇"},
+      {"date": "2026-10-20", "time": "08:59", "weather": "雨"},
       {"date": "2026-10-22", "time": "09:04", "weather": "晴"},
       {"date": "2026-10-23", "time": "09:00", "weather": "晴"},
       {"date": "2026-10-26", "time": "09:06", "weather": "雨"},
